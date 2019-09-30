@@ -1,76 +1,60 @@
-import tweepy
-import os
 import pickle
-import json
-
-import twitter_credentials
-
-
-class TwitterClient:
-    def __init__(self):
-        self.auth = tweepy.OAuthHandler(twitter_credentials.CONSUMER_KEY, twitter_credentials.CONSUMER_SECRET)
-        self.auth.set_access_token(twitter_credentials.ACCESS_TOKEN, twitter_credentials.ACCESS_TOKEN_SECRET)
-        self.api = tweepy.API(self.auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-
-    def get_user_timeline_tweets(self, user, num_tweets):
-        tweets = []
-        for tweet in tweepy.Cursor(self.api.user_timeline, id=user).items(num_tweets):
-            tweets.append(tweet)
-        return tweets
-
-    def get_friend_list(self, user, num_friends):
-        friend_list = []
-        for friend in tweepy.Cursor(self.api.friends, id=user).items(num_friends):
-            friend_list.append(friend)
-        return friend_list
-
-    def get_home_timeline_tweets(self, user, num_tweets):
-        home_timeline_tweets = []
-        for tweet in tweepy.Cursor(self.api.home_timeline, id=user).items(num_tweets):
-            home_timeline_tweets.append(tweet)
-        return home_timeline_tweets
+import networkx
+import os
+from matplotlib import pyplot as plt
+from twitter_client import TwitterClient
 
 
-def add_friends_recursive(graph, expanded_user_nodes, user_id, iterations_left):
-    friends = twitter_client.get_friend_list(user=user_id, num_friends=1000)
-    for friend in friends:
+# Global variables
+expanded_user_ids = []
+twitter_client = TwitterClient()
 
-        if friend.name == user_id:
-            continue
 
-        if friend.name not in expanded_user_nodes:
-            graph.add_node(friend.name)
-            expanded_user_nodes[friend.name] = friend
+def recursive_add_friend_nodes(graph, user_id, screen_name, iterations_left):
+    # get a list of friends for this user
+    friend_objs = twitter_client.get_friend_list(user=user_id, num_friends=100)
+    # turn the list of user objects into a list of minimal information (id and screen name)
+    friend_dict = {friend.id_str: friend.screen_name for friend in friend_objs}
+    # store the friends list in a .pickle file
+    with open(os.path.join('user_pickles', '{}.pickle'.format(user_id)), 'wb') as f:
+        pickle.dump(friend_dict, f)
+    # iterate friends
+    for friend_obj in friend_objs:
+        # add this edge to the graph
+        graph.add_edge(screen_name, friend_obj.screen_name)
+        # if this user has already been expanded
+        if friend_obj.id_str not in expanded_user_ids:
+            # add this node to the graph
+            graph.add_node(friend_obj.screen_name)
+            # add this friend to the list of expanded old_list_of_users so that we don't try to expand it again
+            expanded_user_ids.append(friend_obj.id_str)
+            # while we haven't gone to the full recursive depth
             if iterations_left > 0:
-                add_friends_recursive(
+                # get this friends list of friends
+                recursive_add_friend_nodes(
                     graph=graph,
-                    expanded_user_nodes=expanded_user_nodes,
-                    user_id=friend.id,
+                    user_id=friend_obj.id_str,
+                    screen_name=friend_obj.screen_name,
                     iterations_left=iterations_left-1
                 )
 
-        graph.add_edge(friend.name, user_id)
-        print('{} -> {}'.format(user_id, friend.name))
-
 
 if __name__ == '__main__':
-    twitter_client = TwitterClient()
-    users_already_crawled = [s.rstrip('.pickle') for s in os.listdir('users')]
+    graph = networkx.DiGraph()
+    recursive_add_friend_nodes(graph=graph, user_id='1169829015768616961',
+                               screen_name='steviedale_4', iterations_left=4)
 
-    with open('users_to_add.json', 'r') as f:
-        users_to_add = json.load(f)
+    print('# of edges: {}'.format(graph.number_of_edges()))
+    print('# of nodes: {}'.format(graph.number_of_nodes()))
 
-    for user_id in users_to_add:
-        if user_id in users_already_crawled:
-            print('skipping {}...'.format(user_id))
-            continue
-        try:
-            print('adding {}...'.format(user_id))
-            friends = twitter_client.get_friend_list(user=user_id, num_friends=200)
-            with open(os.path.join('users', user_id+'.pickle'), 'wb') as f:
-                pickle.dump(friends, f)
-            print('added!')
-        except:
-            print("FAILED")
+    clusters = networkx.clustering(graph)
 
-    print('done')
+    # pos = networkx.layout.spring_layout(graph)
+    pos = networkx.layout.bipartite_layout(graph)
+
+    nodes = networkx.draw_networkx_nodes(graph, pos, node_size=20)
+    edges = networkx.draw_networkx_edges(graph, pos)
+
+    ax = plt.gca()
+    ax.set_axis_off()
+    plt.show()

@@ -27,7 +27,7 @@ function global:deactivate ([switch]$NonDestructive) {
 
 deactivate -nondestructive
 
-$env:VIRTUAL_ENV="C:\Users\Stevie\Google Drive\ASU\CSE 472 - Social Media Mining\Project 1\venv"
+$env:VIRTUAL_ENV="C:\git\social_media_mining\Projects\Project 1\venv"
 
 if (! $env:VIRTUAL_ENV_DISABLE_PROMPT) {
     # Set the prompt to include the env name

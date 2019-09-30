@@ -16,9 +16,9 @@ for friend in megan_dict['Megan Lovejoy']['friends']:
     user_dict[friend.id]['id'] = friend.id
     user_dict[friend.id]['screen_name'] = friend.screen_name
 
-for file in os.listdir('users'):
+for file in os.listdir('old_list_of_users'):
     id = int(file.rstrip('.pickle'))
-    with open(os.path.join('users', file), 'rb') as f:
+    with open(os.path.join('old_list_of_users', file), 'rb') as f:
         friend_list = pickle.load(f)
     user_dict[id]['friends'] = []
     for friend in friend_list:

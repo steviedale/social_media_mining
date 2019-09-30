@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Stevie\Google Drive\ASU\CSE 472 - Social Media Mining\Project 1\venv"
+VIRTUAL_ENV="C:\git\social_media_mining\Projects\Project 1\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
