@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d234eb32-9652-4ac9-9550-35552994ff2d" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Megan Lovejoy.pickle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/all_users.pickle" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/condense_users.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/graph.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter_credentials.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_friend_dict.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/user_id_to_screen_name.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/users_to_add.json" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -253,11 +260,6 @@
           <url>file://$PROJECT_DIR$/network.py</url>
           <line>34</line>
           <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/crawl_friendships.py</url>
-          <line>16</line>
-          <option name="timeStamp" value="38" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
