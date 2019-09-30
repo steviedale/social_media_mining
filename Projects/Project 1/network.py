@@ -32,7 +32,7 @@ print('# of nodes: {}'.format(graph.number_of_nodes()))
 clusters = networkx.clustering(graph)
 
 
-pos = networkx.layout.spring_layout(graph)
+pos = networkx.layout.bipartite_layout(graph)
 
 nodes = networkx.draw_networkx_nodes(graph, pos, node_size=20)
 edges = networkx.draw_networkx_edges(graph, pos)
