@@ -1,42 +1,92 @@
 import networkx
-import json
-import matplotlib.pyplot as plt
+import friendship_crawler
+import os
+import pickle
 
-with open('user_id_to_screen_name.json', 'r') as f:
-    user_id_to_screen_name = json.load(f)
 
-with open('user_friend_dict.json', 'r') as f:
-    user_friend_dict = json.load(f)
+def get_network_graph(crawl_data=True):
+    if crawl_data:
+        # grab information from twitter about steviedale4's friendship network
+        friendship_crawler.recursive_friendship_crawl(user_id='1169829015768616961',
+                                                      screen_name='steviedale4', iterations_left=2,
+                                                      max_friends_per_node=100)
 
-graph = networkx.DiGraph()
+    '''
+    user_friendship_dict will have the following structure:
+    {
+        ID_OF_USER_A: {
+            "id": ID_OF_USER_A,
+            "screen_name": SCREEN_NAME_OF_USER_A,
+            "friends": {
+                ID_OF_FRIEND_1_OF_USER_A : {
+                    "id": ID_OF_FRIEND_1_OF_USER_A,
+                    "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER_A
+                },
+                ID_OF_FRIEND_2_OF_USER_A: {
+                    "id": ID_OF_FRIEND_2_OF_USER_A,
+                    "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER_A
+                },
+                ...
+            }
+        }
+         ID_OF_USER_B: {
+            "id": ID_OF_USER_B,
+            "screen_name": SCREEN_NAME_OF_USER_B,
+            "friends": {
+                ID_OF_FRIEND_1_OF_USER_B : {
+                    "id": ID_OF_FRIEND_1_OF_USER_B,
+                    "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER_B
+                },
+                ID_OF_FRIEND_2_OF_USER_B: {
+                    "id": ID_OF_FRIEND_2_OF_USER_B,
+                    "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER_B
+                },
+                ...
+            }
+        }
+    }
+    '''
+    user_friendship_dict = {}
+    pickle_folder = 'users'
+    for file_name in os.listdir(pickle_folder):
+        with open(os.path.join(pickle_folder, file_name), 'rb') as f:
+            '''
+                "user_dict" is the variable pickled in each of the .pickle files. These variables (one per file) will have the
+                following structure:
+                {
+                "id": ID_OF_USER,
+                "screen_name": SCREEN_NAME_OF_USER,
+                "friends": {
+                ID_OF_FRIEND_1_OF_USER : {
+                "id": ID_OF_FRIEND_1_OF_USER,
+                "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER
+                },
+                ID_OF_FRIEND_2_OF_USER: {
+                "id": ID_OF_FRIEND_2_OF_USER,
+                "screen_name": SCREEN_NAME_OF_FRIEND_2_OF_USER
+                },
+                ...
+                }
+                }
+                '''
+            user_dict = pickle.load(f)
+        user_friendship_dict[user_dict['id']] = user_dict
 
-expanded_users = list(user_friend_dict.keys())
+    def add_user_to_graph(graph, user):
+        if user not in graph:
+            graph.add_node(user)
+        else:
+            print('user {} already in graph!'.format(user))
 
-user_nodes_added = []
-for user_id, friend_list in user_friend_dict.items():
-    user_screen_name = user_id_to_screen_name[user_id]
-    if user_screen_name not in user_nodes_added:
-        user_nodes_added.append(user_screen_name)
-        graph.add_node(user_screen_name)
-    for friend_id in friend_list:
-        if friend_id in expanded_users:
-            friend_screen_name = user_id_to_screen_name[friend_id]
-            if friend_screen_name not in user_nodes_added:
-                user_nodes_added.append(friend_screen_name)
-                graph.add_node(friend_screen_name)
+    # create a directed graph
+    graph = networkx.DiGraph()
+
+    for user_id, user_dict in user_friendship_dict.items():
+        user_screen_name = user_dict['screen_name']
+        add_user_to_graph(graph=graph, user=user_screen_name)
+        for friend_id, friend_dict in user_dict['friends'].items():
+            friend_screen_name = friend_dict['screen_name']
+            add_user_to_graph(graph=graph, user=friend_screen_name)
             graph.add_edge(user_screen_name, friend_screen_name)
 
-print('# of edges: {}'.format(graph.number_of_edges()))
-print('# of nodes: {}'.format(graph.number_of_nodes()))
-
-clusters = networkx.clustering(graph)
-
-
-pos = networkx.layout.bipartite_layout(graph)
-
-nodes = networkx.draw_networkx_nodes(graph, pos, node_size=20)
-edges = networkx.draw_networkx_edges(graph, pos)
-
-ax = plt.gca()
-ax.set_axis_off()
-plt.show()
+    return graph
